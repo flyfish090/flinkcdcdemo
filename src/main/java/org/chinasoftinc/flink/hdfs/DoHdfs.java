@@ -22,7 +22,7 @@ public class DoHdfs {
 
         //2.Flink-CDC 将读取 binlog 的位置信息以状态的方式保存在 CK,如果想要做到断点续传,需要从 Checkpoint 或者 Savepoint 启动程序
         //2.1 开启 Checkpoint,每隔 5 秒钟做一次 CK
-        env.enableCheckpointing(1000L);
+        env.enableCheckpointing(60000L);
         //2.2 指定 CK 的一致性语义
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
         env.setMaxParallelism(1);
@@ -40,7 +40,7 @@ public class DoHdfs {
 
 ///data/flink/checkpoints
         DebeziumSourceFunction<String> mysqlSource = MySQLSource.<String>builder()
-                .hostname("47.122.7.128")
+                .hostname("hadoop001")
                 .port(3306)
                 .username("root")
                 .password("qida@123")
@@ -58,7 +58,7 @@ public class DoHdfs {
         // 方式1：将数据导入Hadoop的文件夹
         //recordData.writeAsText("hdfs://hadoop:9000/flink/");
         // 方式2：将数据导入Hadoop的文件夹
-        BucketingSink<String> hadoopSink = new BucketingSink<>("hdfs://47.122.7.128:9000/flink/");
+        BucketingSink<String> hadoopSink = new BucketingSink<>("hdfs://hadoop001:9000/flink/");
         // 使用东八区时间格式"yyyy-MM-dd--HH"命名存储区
         hadoopSink.setBucketer(new DateTimeBucketer<>("yyyy-MM-dd--HH", ZoneId.of("Asia/Shanghai")));
         // 下述两种条件满足其一时，创建新的块文件
